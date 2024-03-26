@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('name', 256)->nullable(false);
             $table->boolean('is_active');
             $table->timestamps();
-            $table->timestamp('closed_at');
+            $table->timestamp('closed_at')->nullable(true);
         });
     }
 
