@@ -73,4 +73,22 @@ class ProjectController extends Controller
     {
         //
     }
+
+    public function addTask(Request $request, string $project_id) {
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $project = Project::findOrFail($project_id);
+
+        $taskName = $validatedData['name'];
+        
+        $project->tasks()->create([
+            'name' => $taskName,
+            'project_id' => $project_id,
+            'is_active' => 0
+        ]);
+        
+        return response()->json(['message' => 'Task added successfully']);
+    }
 }

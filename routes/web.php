@@ -22,6 +22,7 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth', 'verified']], fu
         return redirect()->route('projects.index');
     })->name('dashboard');
     Route::resource('projects', ProjectController::class);
+    Route::post('projects/{project}/add-task', [ProjectController::class, 'addTask'])->name('projects.add-task');
     // Route::get('projects', function () {
     //     return Inertia::render('Projects', [
     //         'projects' => auth()->user()->projects()->get()
