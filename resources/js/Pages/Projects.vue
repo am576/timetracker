@@ -60,6 +60,32 @@ import moment from "moment";
             }
         }
     },
+    deleteProject(id) {
+        if (confirm('Вы действительно хотите удалить проект?')) {
+        axios.delete(`/dashboard/projects/${id}`)
+            .then(response => {
+                console.log('Project deleted successfully', response.data);
+                this.projectsProp = this.projectsProp.filter(project => project.id !== id);
+            })
+            .catch(error => {
+                console.error('An error occurred while deleting the project', error);
+            });
+        }
+    },
+    deleteTask(project_index, task_index) {
+        if (confirm('Вы действительно хотите удалить задачу?')) {
+            const project_id = this.projectsProp[project_index].id;
+            const task_id = this.projectsProp[project_index].tasks[task_index].id;
+            axios.delete(`/dashboard/projects/${project_id}/${task_id}`)
+                .then(response => {
+                    console.log('Task deleted successfully', response.data);
+                    this.projectsProp[project_index].tasks.splice(task_index, 1);
+                })
+                .catch(error => {
+                    console.error('An error occurred while deleting the task', error);
+                });
+            }
+    },
     setHoveredProject(index) {
       this.projectHovered = index;
     },
@@ -151,10 +177,17 @@ import moment from "moment";
                         >
                             <v-card-item>
                                 <v-card-title>
-                                    {{ project.name }}
-                                    <v-btn density="compact" icon="mdi-plus">
+                                    <div class="flex gap-4">
+                                        {{ project.name }}
+                                        <v-btn density="compact" icon v-show="projectHovered === projectIndex" @click="deleteProject(project.id)">
+                                            <v-icon
+                                                color="amber-600"
+                                                icon="mdi-close"/>
+                                        </v-btn>
+                                    </div>
+                                    
+                                    <v-btn density="compact" icon="mdi-plus" >
                                         <v-icon @click="showTaskModal(projectIndex)">
-                                            mdi-plus
                                           </v-icon>
                                         <v-tooltip
                                             activator="parent"
@@ -171,19 +204,21 @@ import moment from "moment";
                                     <div class="task-card" v-for="(task, taskIndex) in project.tasks" :key="task.id" @mouseover="setHoveredTask(taskIndex)"
                                     @mouseout="clearHoveredTask">
                                         <span>{{ task.name }}</span>
-                                        <div class="task-controls" v-if="taskHovered === taskIndex">
-                                            <a href="#" class="text-green-500 hover:text-green-600">
+                                        <div class="task-controls" v-show="projectHovered === projectIndex && taskHovered === taskIndex">
+                                            <v-btn density="compact" icon>
                                                 <v-icon
+                                                color="green-500"
                                                 icon="mdi-play"/>
-                                            </a>
-                                            <a href="#" class="text-gray-400 hover:text-gray-500">
+                                            </v-btn>
+                                            <v-btn density="compact" icon>
                                                 <v-icon
                                                 icon="mdi-pencil"/>
-                                            </a>
-                                            <a href="#" class="text-amber-600 hover:text-amber-700">
+                                            </v-btn>
+                                            <v-btn density="compact" icon @click="deleteTask(projectIndex, taskIndex)">
                                                 <v-icon
+                                                color="amber-600"
                                                 icon="mdi-close"/>
-                                            </a>
+                                            </v-btn>
                                         </div>
                                     </div>
                                 </div>

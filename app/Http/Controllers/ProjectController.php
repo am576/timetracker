@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Models\Project;
+use App\Models\Task;
 
 class ProjectController extends Controller
 {
@@ -71,7 +72,13 @@ class ProjectController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $project = Project::findOrFail($id);
+
+        $project->tasks()->delete();
+
+        $project->delete();
+
+        return response()->json(['message' => 'Project and related tasks deleted successfully']);
     }
 
     public function addTask(Request $request, string $project_id) {
@@ -90,5 +97,10 @@ class ProjectController extends Controller
         ]);
         
         return response()->json(['message' => 'Task added successfully']);
+    }
+
+    public function deleteTask(Request $request, string $project_id, string $task_id) {
+        Task::where('project_id', $project_id)->where('id', $task_id)->delete();
+        return response()->json(['message' => 'Task removed successfully']);
     }
 }

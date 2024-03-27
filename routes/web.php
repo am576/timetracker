@@ -23,11 +23,7 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth', 'verified']], fu
     })->name('dashboard');
     Route::resource('projects', ProjectController::class);
     Route::post('projects/{project}/add-task', [ProjectController::class, 'addTask'])->name('projects.add-task');
-    // Route::get('projects', function () {
-    //     return Inertia::render('Projects', [
-    //         'projects' => auth()->user()->projects()->get()
-    //     ]);
-    // })->name('projects');
+    Route::delete('/projects/{project_id}/{task_id}', [ProjectController::class, 'deleteTask']);
     Route::get('statistics', function () {
         return Inertia::render('Statistics');
     })->name('statistics');
