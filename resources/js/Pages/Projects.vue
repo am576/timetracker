@@ -3,22 +3,52 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import moment from "moment";
-import { ref } from 'vue';
-
-const creatingProject = ref(false);
-const closeModal = () => {
-    creatingProject.value = false;
-
-    form.reset();
-};
-const showModal = () => {
-    creatingProject.value = true;
-}
-defineProps({
-    projects: Array
-})
 </script>
-
+<script>
+    export default {
+  props: {
+    projects: Array
+  },
+  data() {
+    return {
+      projectsProp: this.projects,
+      projectAddress: '',
+      creatingProject: false,
+      rules: [
+         value => !!value || 'Адрес не должен быть пустым'
+    ]
+    };
+  },
+  methods: {
+    closeModal() {
+        this.creatingProject = false;
+    },
+    showModal() {
+        this.creatingProject = true;
+    },
+    async addProject() {
+        if (this.rules.every(rule => rule(this.projectAddress) && this.projectAddress)) {
+            try {
+                const url = '/dashboard/projects';
+                const data = {
+                    name: this.projectAddress
+                }
+                const response = await axios.post(url, data);
+                console.log(response.data);
+                this.closeModal();
+                this.projectsProp.unshift({
+                    name: this.projectAddress
+                })
+            } catch (error) {
+                console.error(error);
+            }
+            
+        }
+    }
+  }
+  
+};
+</script>
 <template>
     <Head title="Управление" />
 
@@ -33,14 +63,29 @@ defineProps({
             </h2>
         </template>
 
-        <Modal :show="creatingProject" @close="closeModal">
+        <Modal :show="creatingProject" :maxWidth="'md'" @close="closeModal">
+            <v-card
+            title="Новый проект"
+            >
+                <v-card-text>
+                    <v-form @submit.prevent="addProject">
+                        <v-text-field
+                        v-model="projectAddress"
+                        label="Адрес"
+                        :rules="rules"
+                        ></v-text-field>
+                        <v-btn color="#5865f2" type="submit">Добавить</v-btn>
+                    </v-form>
+                    
+                </v-card-text>
+            </v-card>
             
         </Modal>
         <div class="main-panel py-12">
             <div class="max-w-70xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="projects-container p-6 text-gray-900 dark:text-gray-100">
-                        <v-card v-for="project in projects"
+                        <v-card v-for="project in projectsProp"
                         elevation="16"
                         color="indigo"
                         >

@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\Project;
 
 class ProjectController extends Controller
 {
     public function index()
     {
         return Inertia::render('Projects', [
-            'projects' => auth()->user()->projects()->with('tasks')->get()
+            'projects' => auth()->user()->projects()->with('tasks')->orderBy('created_at', 'desc')->get()
         ]);
     }
 
@@ -28,7 +29,17 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $project = Project::create([
+            'name' => $validatedData['name'],
+            'user_id' => auth()->user()->id,
+            'is_active' => 1
+        ]);
+
+        return response()->json(['message' => 'Project created successfully', 'project' => $project], 201);
     }
 
     /**
