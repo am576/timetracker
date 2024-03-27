@@ -17,8 +17,8 @@ class TaskFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->sentence(),
-            'is_active' => fake()->boolean(),
+            'name' => $this->faker->task,
+            'is_active' => 0,
         ];
     }
 }

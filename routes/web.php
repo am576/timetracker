@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProjectController;
 use App\Models\Project;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -18,11 +19,14 @@ Route::get('/', function () {
 
 Route::group(['prefix' => 'dashboard', 'middleware' => ['auth', 'verified']], function () {
     Route::get('/', function () {
-        return redirect()->route('projects');
+        return redirect()->route('projects.index');
     })->name('dashboard');
-    Route::get('projects', function () {
-        return Inertia::render('Projects');
-    })->name('projects');
+    Route::resource('projects', ProjectController::class);
+    // Route::get('projects', function () {
+    //     return Inertia::render('Projects', [
+    //         'projects' => auth()->user()->projects()->get()
+    //     ]);
+    // })->name('projects');
     Route::get('statistics', function () {
         return Inertia::render('Statistics');
     })->name('statistics');

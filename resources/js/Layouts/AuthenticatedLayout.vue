@@ -9,6 +9,8 @@ import { Link } from '@inertiajs/vue3';
 import { Head } from '@inertiajs/vue3'
 
 const showingNavigationDropdown = ref(false);
+
+
 </script>
 
 <template>

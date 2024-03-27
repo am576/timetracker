@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->has(Project::factory()->has(Task::factory()->count(5))->count(5))->create([
+        User::factory()->has(Project::factory()->has(Task::factory()->count(5))->count(7))->create([
             'name' => 'Иван Петров',
             'email' => 'ivanpetrov@timetracker.com',
             'password' => '123',
