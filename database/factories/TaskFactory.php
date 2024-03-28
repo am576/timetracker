@@ -19,6 +19,7 @@ class TaskFactory extends Factory
         return [
             'name' => $this->faker->task,
             'is_active' => 0,
+            'time_spent' => $this->faker->numberBetween(600, 7200)
         ];
     }
 }
