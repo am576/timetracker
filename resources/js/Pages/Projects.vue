@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import Modal from '@/Components/Modal.vue';
 import moment from "moment";
+import axios from 'axios';
 </script>
 <script>
     export default {
@@ -27,96 +28,164 @@ import moment from "moment";
       taskHovered: null
     };
   },
-  methods: {
-    closeProjectModal() {
-        this.creatingProject = false;
-    },
-    showProjectModal() {
-        this.creatingProject = true;
-    },
-    closeTaskModal() {
-        this.creatingTask = false;
-        this.projectToAdd = null;
-    },
-    showTaskModal(project_index) {
-        this.creatingTask = true;
-        this.projectToAdd = project_index;
-    },
-    async addProject() {
-        if (this.project_rules.every(rule => rule(this.projectAddress) && this.projectAddress)) {
-            try {
-                const url = '/dashboard/projects';
-                const data = {
-                    name: this.projectAddress
+    methods: {
+        closeProjectModal() {
+            this.creatingProject = false;
+        },
+        showProjectModal() {
+            this.creatingProject = true;
+        },
+        closeTaskModal() {
+            this.creatingTask = false;
+            this.projectToAdd = null;
+        },
+        showTaskModal(project_index) {
+            this.creatingTask = true;
+            this.projectToAdd = project_index;
+        },
+        addProject() {
+            if (this.project_rules.every(rule => rule(this.projectAddress) && this.projectAddress)) {
+                try {
+                    const url = '/dashboard/projects';
+                    const data = {
+                        name: this.projectAddress
+                    }
+                    axios.post(url, data)
+                    .then(response => {
+
+                        this.closeProjectModal();
+                        let project = response.data.project;
+                        project.tasks = [];
+                        this.projectsProp.unshift(project)
+                        this.projectAddress = '';
+                    })
+                    
+                } catch (error) {
+                    console.error(error);
                 }
-                const response = await axios.post(url, data);
-                this.closeProjectModal();
-                this.projectsProp.unshift({
-                    name: this.projectAddress
-                })
-                this.projectAddress = '';
-            } catch (error) {
-                console.error(error);
             }
-        }
-    },
-    deleteProject(id) {
-        if (confirm('Вы действительно хотите удалить проект?')) {
-        axios.delete(`/dashboard/projects/${id}`)
-            .then(response => {
-                console.log('Project deleted successfully', response.data);
-                this.projectsProp = this.projectsProp.filter(project => project.id !== id);
-            })
-            .catch(error => {
-                console.error('An error occurred while deleting the project', error);
-            });
-        }
-    },
-    deleteTask(project_index, task_index) {
-        if (confirm('Вы действительно хотите удалить задачу?')) {
-            const project_id = this.projectsProp[project_index].id;
-            const task_id = this.projectsProp[project_index].tasks[task_index].id;
-            axios.delete(`/dashboard/projects/${project_id}/${task_id}`)
+        },
+        deleteProject(id) {
+            if (confirm('Вы действительно хотите удалить проект?')) {
+            axios.delete(`/dashboard/projects/${id}`)
                 .then(response => {
-                    console.log('Task deleted successfully', response.data);
-                    this.projectsProp[project_index].tasks.splice(task_index, 1);
+                    console.log('Project deleted successfully', response.data);
+                    this.projectsProp = this.projectsProp.filter(project => project.id !== id);
                 })
                 .catch(error => {
-                    console.error('An error occurred while deleting the task', error);
+                    console.error('An error occurred while deleting the project', error);
                 });
             }
-    },
-    setHoveredProject(index) {
-      this.projectHovered = index;
-    },
-    clearHoveredProject() {
-      this.projectHovered = null;
-    },
-    setHoveredTask(index) {
-      this.taskHovered = index;
-    },
-    clearHoveredTask() {
-      this.taskHovered = null;
-    },
-    async addTask(project_index) {
-        if (this.task_rules.every(rule => rule(this.newTaskName) && this.newTaskName)) {
-            try {
+        },
+        deleteTask(project_index, task_index) {
+            if (confirm('Вы действительно хотите удалить задачу?')) {
                 const project_id = this.projectsProp[project_index].id;
-                const url = `/dashboard/projects/${project_id}/add-task`;
-                const data = {
-                    name: this.newTaskName
+                const task_id = this.projectsProp[project_index].tasks[task_index].id;
+                axios.delete(`/dashboard/projects/${project_id}/${task_id}`)
+                    .then(response => {
+                        console.log('Task deleted successfully', response.data);
+                        this.projectsProp[project_index].tasks.splice(task_index, 1);
+                    })
+                    .catch(error => {
+                        console.error('An error occurred while deleting the task', error);
+                    });
                 }
-                const response = await axios.post(url, data);
-                this.closeTaskModal();
-                this.projectsProp[project_index].tasks.unshift({
-                    name: this.newTaskName
-                })
-            } catch (error) {
-                console.error(error);
+        },
+        startTask(task_id) {
+            axios.post(`/api/tasks/${task_id}/start`)
+            .then(response => {
+                let projectIndex = this.projectsProp.findIndex(project => project.tasks.some(task => task.id === task_id));
+                if (projectIndex !== -1) {
+                    let taskIndex = this.projectsProp[projectIndex].tasks.findIndex(task => task.id === task_id);
+                    if (taskIndex !== -1) {
+                    this.projectsProp[projectIndex].tasks[taskIndex].is_active = 1;
+                    }
+                }
+            })
+        },
+        stopTask(task_id) {
+            axios.post(`/api/tasks/${task_id}/stop`)
+            .then(response => {
+                let projectIndex = this.projectsProp.findIndex(project => project.tasks.some(task => task.id === task_id));
+                if (projectIndex !== -1) {
+                    let taskIndex = this.projectsProp[projectIndex].tasks.findIndex(task => task.id === task_id);
+                    if (taskIndex !== -1) {
+                    this.projectsProp[projectIndex].tasks[taskIndex].is_active = 0;
+                    }
+                }
+            })
+        },
+        setHoveredProject(index) {
+            this.projectHovered = index;
+        },
+        clearHoveredProject() {
+            this.projectHovered = null;
+        },
+        setHoveredTask(index) {
+            this.taskHovered = index;
+        },
+        clearHoveredTask() {
+            this.taskHovered = null;
+        },
+        addTask(project_index) {
+            console.log(project_index)
+            if (this.task_rules.every(rule => rule(this.newTaskName) && this.newTaskName)) {
+                try {
+                    const project_id = this.projectsProp[project_index].id;
+                    const url = `/dashboard/projects/${project_id}/add-task`;
+                    const data = {
+                        name: this.newTaskName
+                    }
+                    axios.post(url, data)
+                    .then(response => {
+                        this.closeTaskModal();
+                        this.projectsProp[project_index].tasks.unshift(response.data.task)    
+                        console.log(this.projectsProp[project_index].tasks)
+                    })
+                    
+                } catch (error) {
+                    console.error(error);
+                }
             }
+        },
+        formatTime(seconds) {
+            return moment.utc(seconds * 1000).format('HH:mm:ss');
+        },
+        startTimer() {
+            if(this.activeTask !== null) {
+                setInterval(() => {
+                    if(this.activeTask !== null) {
+                        axios.get(`/api/tasks/${this.activeTask.id}/time-spent`)
+                .then(response => {
+                    if(this.activeTask !== null) {
+                        this.activeTask.time_spent = response.data.time_spent;
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+                    }
+                
+            }, 1000);
+            }
+            
         }
-    }
-  }
+    },
+    computed: {
+        activeProject() {
+            return this.projects.find(project => project.tasks.some(task => task.is_active === 1));
+        },
+        activeTask() {
+            if (this.activeProject) {
+            return this.activeProject.tasks.find(task => task.is_active === 1);
+            }
+            return null;
+        }
+    },
+    created() {
+        this.startTimer();
+    },
+
 };
 </script>
 <template>
@@ -142,6 +211,7 @@ import moment from "moment";
                         <v-text-field
                         v-model="projectAddress"
                         label="Адрес"
+                        autocomplete="off"
                         :rules="project_rules"
                         ></v-text-field>
                         <v-btn color="#5865f2" type="submit">Добавить</v-btn>
@@ -168,7 +238,7 @@ import moment from "moment";
         <div class="main-panel py-12">
             <div class="max-w-70xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="projects-container p-6 text-gray-900 dark:text-gray-100">
+                    <div class="projects-container p-6 text-gray-900 dark:text-gray-100" v-if="projects.length">
                         <v-card v-for="(project, projectIndex) in projectsProp " :key="project.id"
                         elevation="16"
                         color="indigo"
@@ -204,15 +274,22 @@ import moment from "moment";
                                     <div class="task-card" v-for="(task, taskIndex) in project.tasks" :key="task.id" @mouseover="setHoveredTask(taskIndex)"
                                     @mouseout="clearHoveredTask">
                                         <span>{{ task.name }}</span>
+                                        <span v-if="(activeTask && activeTask.id === task.id) || task.time_spent > 0">
+                                            {{formatTime(task.time_spent)}}
+                                        </span>
                                         <div class="task-controls" v-show="projectHovered === projectIndex && taskHovered === taskIndex">
-                                            <v-btn density="compact" icon>
+                                            <v-btn density="compact" icon v-if="!activeTask">
                                                 <v-icon
                                                 color="green-500"
-                                                icon="mdi-play"/>
+                                                icon="mdi-play"
+                                                @click="startTask(task.id)"
+                                            />
                                             </v-btn>
-                                            <v-btn density="compact" icon>
+                                            <v-btn density="compact" icon v-if="activeTask && activeTask.id === task.id">
                                                 <v-icon
-                                                icon="mdi-pencil"/>
+                                                icon="mdi-stop"
+                                                @click="stopTask(task.id)"
+                                            />
                                             </v-btn>
                                             <v-btn density="compact" icon @click="deleteTask(projectIndex, taskIndex)">
                                                 <v-icon
@@ -225,6 +302,9 @@ import moment from "moment";
                             </v-card-text>
                         </v-card>
                     </div>
+                    <div v-else class="flex justify-center items-center h-full p-6">
+                        Вы ещё не добавили ни одного проекта.
+                    </div>  
                 </div>
             </div>
         </div>

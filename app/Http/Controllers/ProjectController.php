@@ -90,17 +90,26 @@ class ProjectController extends Controller
 
         $taskName = $validatedData['name'];
         
-        $project->tasks()->create([
+        $task = $project->tasks()->create([
             'name' => $taskName,
             'project_id' => $project_id,
-            'is_active' => 0
+            'is_active' => 0,
+            'time_spent' => 0
         ]);
         
-        return response()->json(['message' => 'Task added successfully']);
+        return response()->json(['task' => $task], 201);
     }
 
     public function deleteTask(Request $request, string $project_id, string $task_id) {
         Task::where('project_id', $project_id)->where('id', $task_id)->delete();
         return response()->json(['message' => 'Task removed successfully']);
+    }
+
+    public function startTask(Request $request, string $task_id) {
+        Task::where('id', $task_id)->update(['is_active' => 1]);
+    }
+
+    public function stopTask($task_id) {
+        Task::where('id', $task_id)->update(['is_active' => 0]);
     }
 }

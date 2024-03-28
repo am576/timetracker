@@ -19,6 +19,7 @@ return new class extends Migration
             $table->boolean('is_active');
             $table->timestamps();
             $table->timestamp('closed_at')->nullable(true);
+            $table->unsignedInteger('time_spent')->default(0);
         });
     }
 

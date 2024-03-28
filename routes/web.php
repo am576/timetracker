@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\StatController;
 use App\Models\Project;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -24,9 +25,8 @@ Route::group(['prefix' => 'dashboard', 'middleware' => ['auth', 'verified']], fu
     Route::resource('projects', ProjectController::class);
     Route::post('projects/{project}/add-task', [ProjectController::class, 'addTask'])->name('projects.add-task');
     Route::delete('/projects/{project_id}/{task_id}', [ProjectController::class, 'deleteTask']);
-    Route::get('statistics', function () {
-        return Inertia::render('Statistics');
-    })->name('statistics');
+    Route::post('projects/start-task/{task_id}', [ProjectController::class, 'startTask'])->name('projects.start-task');
+    Route::get('statistics', [StatController::class, 'getProjectStats'])->name('statistics');
 });
 
 
