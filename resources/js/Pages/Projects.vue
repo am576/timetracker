@@ -101,6 +101,7 @@ import axios from 'axios';
                     this.projectsProp[projectIndex].tasks[taskIndex].is_active = 1;
                     }
                 }
+                this.startTimer();
             })
         },
         stopTask(task_id) {
@@ -128,7 +129,6 @@ import axios from 'axios';
             this.taskHovered = null;
         },
         addTask(project_index) {
-            console.log(project_index)
             if (this.task_rules.every(rule => rule(this.newTaskName) && this.newTaskName)) {
                 try {
                     const project_id = this.projectsProp[project_index].id;
@@ -140,7 +140,6 @@ import axios from 'axios';
                     .then(response => {
                         this.closeTaskModal();
                         this.projectsProp[project_index].tasks.unshift(response.data.task)    
-                        console.log(this.projectsProp[project_index].tasks)
                     })
                     
                 } catch (error) {
@@ -158,6 +157,7 @@ import axios from 'axios';
                         axios.get(`/api/tasks/${this.activeTask.id}/time-spent`)
                 .then(response => {
                     if(this.activeTask !== null) {
+                        console.log('run')
                         this.activeTask.time_spent = response.data.time_spent;
                     }
                 })

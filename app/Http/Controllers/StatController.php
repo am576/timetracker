@@ -10,7 +10,10 @@ class StatController extends Controller
 {
     public function getProjectStats()
     {
-        $projects = Project::with('tasks')->orderBy('created_at', 'desc')->get();
+        $projects = Project::with('tasks')
+        ->where('user_id', auth()->id())
+        ->orderBy('created_at', 'desc')
+        ->get();
 
         $stats = $projects->map(function ($project) {
             $timeSpent = $project->tasks->sum('time_spent');
